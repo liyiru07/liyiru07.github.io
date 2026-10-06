@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《小王子》· 新媒体交互设计作业</title>
+<meta name="description" content="《小王子》名著解说视频 —— 新媒体交互设计课程作业，水彩插画风格动态网页展示">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23FBF3E6' stroke='%23C1272D' stroke-width='4'/%3E%3Ccircle cx='36' cy='42' r='7' fill='%23C1272D'/%3E%3Ccircle cx='64' cy='42' r='7' fill='%23C1272D'/%3E%3Cpath d='M32 62 Q50 76 68 62' stroke='%23C1272D' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+/* ===================== 全局设定 ===================== */
+:root{
+  --cream:#FBF3E6;
+  --cream-deep:#F4E9D6;
+  --paper:#FFFCF6;
+  --red:#C1272D;
+  --red-soft:#D9534F;
+  --red-light:rgba(193,39,45,.08);
+  --brown:#4B3A2A;
+  --brown-soft:#6B5643;
+  --gray:#A89C8C;
+  --gray-light:#C4B9A9;
+  --line:#E7D9C0;
+  --shadow:0 6px 24px rgba(120,90,50,.10);
+  --shadow-lg:0 16px 48px rgba(120,90,50,.16);
+  --radius:14px;
+  --nav-h:64px;
+  --song:"Songti SC","STSong","SimSun","Noto Serif SC","Source Han Serif SC","Microsoft YaHei",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--song);
+  background:var(--cream);
+  color:var(--brown);
+  line-height:1.95;
+  font-size:16px;
+  letter-spacing:.02em;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255,255,255,.75) 0, rgba(255,255,255,0) 42%),
+    radial-gradient(circle at 88% 22%, rgba(226,199,160,.28) 0, rgba(226,199,160,0) 46%),
+    radial-gradient(circle at 50% 96%, rgba(214,182,140,.22) 0, rgba(214,182,140,0) 50%);
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+/* 纸张纹理 */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:radial-gradient(rgba(160,130,90,.10) 1px, transparent 1px);
+  background-size:22px 22px;
+}
+img{max-width:100%;display:block}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::selection{background:rgba(193,39,45,.18)}
+
+/* 滚动进度条 */
+#progress{
+  position:fixed;top:0;left:0;height:3px;width:0;z-index:120;
+  background:linear-gradient(90deg,var(--red),#E8A33D);
+  transition:width .1s linear;
+}
+
+/* ===================== 顶部导航（固定） ===================== */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(251,243,230,.90);
+  backdrop-filter:saturate(150%) blur(12px);
+  -webkit-backdrop-filter:saturate(150%) blur(12px);
+  border-bottom:1px solid var(--line);
+  transition:box-shadow .35s ease, background .35s ease;
+}
+header.scrolled{box-shadow:0 4px 22px rgba(120,90,50,.13);background:rgba(251,243,230,.97)}
+.nav{
+  max-width:1180px;margin:0 auto;height:var(--nav-h);
+  display:flex;align-items:center;gap:18px;padding:0 20px;
+}
+.brand{
+  display:flex;align-items:center;gap:9px;flex-shrink:0;
+  font-size:19px;color:var(--red);font-weight:700;letter-spacing:.06em;
+  text-shadow:0 1px 0 rgba(255,255,255,.7);
+}
+.brand .star{width:20px;height:20px;flex-shrink:0;animation:twinkle 3.2s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.45;transform:scale(.85)}50%{opacity:1;transform:scale(1.12)}}
+.nav-scroll{
+  flex:1;display:flex;align-items:center;justify-content:flex-end;gap:4px;
+  overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;
+  scroll-behavior:smooth;
+}
+.nav-scroll::-webkit-scrollbar{display:none}
+.nav-btn{
+  position:relative;flex-shrink:0;
+  padding:8px 15px;border-radius:999px;
+  font-size:15.5px;color:var(--gray);
+  letter-spacing:.1em;
+  transition:color .3s ease, background .3s ease, transform .3s ease;
+}
+.nav-btn::after{
+  content:"";position:absolute;left:50%;bottom:2px;
+  width:0;height:2px;border-radius:2px;background:var(--red);
+  transform:translateX(-50%);
+  transition:width .32s cubic-bezier(.4,0,.2,1);
+}
+.nav-btn:hover{color:var(--red-soft);background:var(--red-light);transform:translateY(-2px)}
+.nav-btn:hover::after{width:22%}
+.nav-btn.active{color:var(--red);font-weight:700;background:rgba(193,39,45,.10)}
+.nav-btn.active::after{width:30%}
+
+/* ===================== 首屏 ===================== */
+.hero{
+  position:relative;z-index:1;
+  min-height:88vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:calc(var(--nav-h) + 40px) 24px 70px;
+}
+.hero-planet{width:150px;height:150px;margin-bottom:26px;animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-16px) rotate(6deg)}}
+.hero h1{
+  font-size:clamp(40px,8vw,74px);color:var(--red);font-weight:700;
+  letter-spacing:.14em;line-height:1.28;margin-bottom:18px;
+  text-shadow:0 2px 0 rgba(255,255,255,.6);
+  animation:fadeUp .9s .05s cubic-bezier(.22,.9,.3,1) both;
+}
+.hero .sub{
+  font-size:clamp(15px,2.4vw,19px);color:var(--brown-soft);
+  letter-spacing:.24em;margin-bottom:16px;
+  animation:fadeUp .9s .18s cubic-bezier(.22,.9,.3,1) both;
+}
+.hero .meta{
+  font-size:14px;color:var(--gray);letter-spacing:.16em;
+  padding:9px 22px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(255,252,246,.72);box-shadow:var(--shadow);
+  animation:fadeUp .9s .3s cubic-bezier(.22,.9,.3,1) both;
+}
+.hero .scroll-tip{
+  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  font-size:13px;color:var(--gray);letter-spacing:.2em;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  animation:fadeUp .9s .5s cubic-bezier(.22,.9,.3,1) both;
+}
+.hero .scroll-tip i{
+  width:1px;height:34px;display:block;
+  background:linear-gradient(180deg,var(--gray-light),transparent);
+  animation:drop 1.9s ease-in-out infinite;
+}
+@keyframes drop{0%{transform:scaleY(.2);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(.2);transform-origin:bottom}}
+
+/* ===================== 内容板块（长页面，全部显示） ===================== */
+main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 20px 90px}
+.section{scroll-margin-top:calc(var(--nav-h) + 18px);padding-top:34px}
+.sec-head{
+  display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;
+  padding-bottom:16px;margin-bottom:30px;
+  border-bottom:1px dashed var(--line);
+}
+.sec-num{
+  font-size:13px;color:var(--red);letter-spacing:.2em;
+  border:1px solid rgba(193,39,45,.35);border-radius:999px;
+  padding:3px 12px;background:var(--red-light);
+}
+.sec-head h2{
+  font-size:clamp(26px,4.6vw,38px);color:var(--red);
+  font-weight:700;letter-spacing:.12em;line-height:1.3;
+}
+.sec-head .en{font-size:12.5px;color:var(--gray-light);letter-spacing:.28em;padding-bottom:6px}
+
+/* 滚动进入动画 */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.22,.9,.3,1),transform .8s cubic-bezier(.22,.9,.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+/* 标签跳转时的高亮闪烁 */
+@keyframes flash{
+  0%{box-shadow:0 0 0 0 rgba(193,39,45,0)}
+  35%{box-shadow:0 0 0 7px rgba(193,39,45,.13)}
+  100%{box-shadow:0 0 0 0 rgba(193,39,45,0)}
+}
+.flash{animation:flash 1.15s ease-out;border-radius:var(--radius)}
+
+.card{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius);padding:28px 30px;
+  box-shadow:var(--shadow);margin-bottom:22px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--red),rgba(193,39,45,.15));
+}
+.card h3{font-size:20px;color:var(--red);font-weight:700;letter-spacing:.08em;margin-bottom:14px}
+.card p{font-size:16px;color:var(--brown);text-align:justify}
+.card p + p{margin-top:12px}
+.muted{color:var(--brown-soft);font-size:14.5px}
+
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.chip{
+  font-size:13.5px;color:var(--red);letter-spacing:.06em;
+  background:var(--red-light);border:1px solid rgba(193,39,45,.2);
+  padding:4px 13px;border-radius:999px;
+  transition:transform .25s ease,background .25s ease;
+}
+.chip:hover{transform:translateY(-2px);background:rgba(193,39,45,.16)}
+
+.quote{
+  margin-top:22px;padding:22px 26px;
+  background:linear-gradient(135deg,rgba(193,39,45,.06),rgba(232,163,61,.08));
+  border-left:4px solid var(--red);border-radius:0 12px 12px 0;
+  color:var(--red);font-size:16.5px;line-height:2;letter-spacing:.06em;
+}
+
+/* ====== 策划：画面网格 ===== */
+.grid{display:grid;gap:18px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.frame{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;
+  box-shadow:var(--shadow);
+  transition:transform .38s cubic-bezier(.22,.9,.3,1),box-shadow .38s ease;
+}
+.frame:hover{transform:translateY(-7px);box-shadow:var(--shadow-lg)}
+.frame .thumb{height:104px;display:flex;align-items:flex-end;padding:12px 14px;position:relative;overflow:hidden}
+.frame .thumb::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 78% 22%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 55%)}
+.t1{background:linear-gradient(135deg,#F6C99A,#E79B6B)}
+.t2{background:linear-gradient(135deg,#BFD3EE,#8FA9D6)}
+.t3{background:linear-gradient(135deg,#DCC7EA,#B79BD4)}
+.t4{background:linear-gradient(135deg,#BFC9D4,#94A3B4)}
+.t5{background:linear-gradient(135deg,#F7DCA6,#D9A85C)}
+.t6{background:linear-gradient(135deg,#F9E2A8,#E8C268)}
+.t7{background:linear-gradient(135deg,#F6C3C0,#DE8F8B)}
+.t8{background:linear-gradient(135deg,#9FB0D8,#5F6FA0)}
+.frame .no{
+  position:relative;z-index:2;font-size:12px;color:#fff;letter-spacing:.14em;
+  background:rgba(75,58,42,.42);border:1px solid rgba(255,255,255,.45);
+  padding:2px 10px;border-radius:999px;backdrop-filter:blur(3px);
+}
+.frame .ft{padding:15px 16px 17px}
+.frame .ft h4{font-size:16px;color:var(--brown);font-weight:700;letter-spacing:.05em;margin-bottom:6px}
+.frame .ft span{font-size:13px;color:var(--gray);letter-spacing:.04em}
+
+/* ====== 素材：实拍插画 ===== */
+.shot{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;
+  box-shadow:var(--shadow);margin-bottom:24px;
+  transition:transform .4s cubic-bezier(.22,.9,.3,1),box-shadow .4s ease,border-color .4s;
+}
+.shot:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(193,39,45,.3)}
+.shot .pic{
+  position:relative;width:100%;aspect-ratio:3/2;
+  background:var(--cream-deep);overflow:hidden;cursor:zoom-in;
+}
+.shot .pic img{width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .7s cubic-bezier(.22,.9,.3,1)}
+.shot:hover .pic img{transform:scale(1.05)}
+.shot .badge{
+  position:absolute;left:14px;top:14px;z-index:2;
+  font-size:12.5px;color:#fff;letter-spacing:.14em;
+  background:rgba(75,58,42,.5);border:1px solid rgba(255,255,255,.45);
+  padding:3px 12px;border-radius:999px;backdrop-filter:blur(4px);
+  box-shadow:0 2px 10px rgba(0,0,0,.18);
+}
+.shot figcaption{padding:16px 20px 19px;border-top:1px solid var(--line)}
+.shot figcaption h4{
+  font-size:18px;color:var(--red);font-weight:700;letter-spacing:.06em;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+}
+.shot figcaption .sub{font-size:13.5px;color:var(--gray);letter-spacing:.05em;margin-top:5px}
+.shot figcaption .tip{
+  margin-top:12px;font-size:14px;color:var(--brown-soft);line-height:1.9;
+  background:var(--cream);border:1px dashed var(--line);
+  border-radius:10px;padding:12px 14px;text-align:justify;
+}
+.shot figcaption .tip b{color:var(--red);font-weight:700}
+
+/* ====== 素材：提示词卡片 ===== */
+.prompt{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius);padding:20px 22px;margin-bottom:16px;
+  box-shadow:var(--shadow);position:relative;
+  transition:transform .35s cubic-bezier(.22,.9,.3,1),box-shadow .35s ease,border-color .35s;
+}
+.prompt:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:rgba(193,39,45,.28)}
+.prompt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px;flex-wrap:wrap}
+.prompt-head h4{font-size:17px;color:var(--red);font-weight:700;letter-spacing:.06em}
+.prompt-body{
+  font-size:15px;color:var(--brown-soft);line-height:1.95;
+  background:var(--cream);border:1px dashed var(--line);
+  border-radius:10px;padding:14px 16px;text-align:justify;
+}
+.btn-copy{
+  font-size:13px;color:var(--red);letter-spacing:.08em;
+  border:1px solid rgba(193,39,45,.35);background:var(--red-light);
+  padding:5px 15px;border-radius:999px;transition:all .25s ease;
+}
+.btn-copy:hover{background:var(--red);color:#fff;transform:translateY(-2px)}
+
+/* 灯箱 */
+#lightbox{
+  position:fixed;inset:0;z-index:300;display:none;
+  align-items:center;justify-content:center;padding:26px;
+  background:rgba(48,36,26,.92);backdrop-filter:blur(6px);
+  animation:fadeIn .3s ease;
+}
+#lightbox.show{display:flex}
+@keyframes fadeIn{0%{opacity:0}100%{opacity:1}}
+#lightbox img{
+  max-width:100%;max-height:84vh;border-radius:10px;
+  box-shadow:0 24px 70px rgba(0,0,0,.5);
+  animation:zoomIn .38s cubic-bezier(.22,.9,.3,1);
+}
+@keyframes zoomIn{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
+#lightbox .cap{margin-top:14px;color:#F3E6D0;font-size:15px;letter-spacing:.1em;text-align:center}
+#lightbox .close{
+  position:absolute;top:20px;right:24px;width:42px;height:42px;
+  border-radius:50%;background:rgba(255,255,255,.14);color:#fff;
+  font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;
+  transition:background .25s ease,transform .25s ease;
+}
+#lightbox .close:hover{background:var(--red);transform:rotate(90deg)}
+
+/* ====== 文案 ===== */
+.script-item{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius);padding:20px 24px;margin-bottom:16px;position:relative;
+  transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease;
+}
+.script-item:hover{transform:translateX(7px);box-shadow:var(--shadow);border-color:rgba(193,39,45,.3)}
+.script-item .lbl{
+  display:inline-block;font-size:13px;color:#fff;letter-spacing:.1em;
+  background:var(--red);padding:2px 12px;border-radius:999px;margin-bottom:10px;
+}
+.script-item p{font-size:16px;line-height:2.05;text-align:justify}
+.copy-btn{
+  float:right;font-size:12.5px;color:var(--gray);
+  border:1px solid var(--line);border-radius:999px;padding:2px 12px;
+  background:var(--cream);transition:all .25s ease;
+}
+.copy-btn:hover{color:var(--red);border-color:rgba(193,39,45,.4);background:var(--red-light)}
+
+/* ====== 方法：时间轴 ===== */
+.steps{position:relative;padding-left:38px}
+.steps::before{
+  content:"";position:absolute;left:13px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(180deg,var(--red),rgba(193,39,45,.12));
+}
+.step{position:relative;margin-bottom:26px}
+.step:last-child{margin-bottom:0}
+.step .dot{
+  position:absolute;left:-38px;top:5px;
+  width:28px;height:28px;border-radius:50%;
+  background:var(--paper);border:2px solid var(--red);color:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+  box-shadow:0 0 0 5px rgba(193,39,45,.07);
+}
+.step h4{font-size:18px;color:var(--red);font-weight:700;letter-spacing:.08em;margin-bottom:6px}
+.step p{font-size:15.5px;color:var(--brown);text-align:justify}
+
+/* ====== 工具 ===== */
+.tool{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius);padding:22px 20px;text-align:center;
+  box-shadow:var(--shadow);
+  transition:transform .35s cubic-bezier(.22,.9,.3,1),box-shadow .35s ease,border-color .35s;
+}
+.tool:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg);border-color:rgba(193,39,45,.3)}
+.tool .ic{
+  width:52px;height:52px;margin:0 auto 13px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(193,39,45,.12),rgba(232,163,61,.16));
+  border:1px solid rgba(193,39,45,.2);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.tool:hover .ic{transform:rotate(-8deg) scale(1.08)}
+.tool .ic svg{width:26px;height:26px;stroke:var(--red);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tool h4{font-size:17px;color:var(--brown);font-weight:700;letter-spacing:.06em;margin-bottom:7px}
+.tool p{font-size:14px;color:var(--gray);line-height:1.85;text-align:center}
+
+/* ====== 视频播放器 ===== */
+.player-wrap{
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-lg);
+}
+.stage{
+  position:relative;width:100%;aspect-ratio:16/9;background:#241d16;
+  border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+}
+.stage video{width:100%;height:100%;object-fit:contain;display:block;background:#241d16}
+.cover{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:13px;text-align:center;padding:24px;
+  background:radial-gradient(circle at 50% 38%,rgba(255,236,200,.16),rgba(36,29,22,.94));
+  transition:opacity .45s ease;
+}
+.cover.hide{opacity:0;pointer-events:none}
+.cover h4{font-size:clamp(17px,3vw,23px);letter-spacing:.12em;color:#F6E3C0;font-weight:700}
+.cover p{font-size:13.5px;color:#B7A48A;letter-spacing:.06em;line-height:1.9}
+.cover .ring{
+  width:62px;height:62px;border-radius:50%;border:2px solid rgba(246,227,192,.5);
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(193,39,45,.28);
+}
+.cover .ring svg{width:24px;height:24px;fill:#F6E3C0;margin-left:3px}
+.ctrl{display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap}
+.pbtn{
+  width:46px;height:46px;border-radius:50%;flex-shrink:0;
+  background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(193,39,45,.32);
+  transition:transform .25s ease,background .25s ease;
+}
+.pbtn:hover{transform:scale(1.08);background:#A81F24}
+.pbtn svg{width:20px;height:20px;fill:#fff}
+.bar{
+  flex:1;min-width:180px;height:7px;border-radius:99px;background:var(--cream-deep);
+  position:relative;cursor:pointer;
+}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:99px;background:linear-gradient(90deg,var(--red),#E8A33D);transition:width .12s linear}
+.bar .knob{
+  position:absolute;top:50%;left:0;width:14px;height:14px;border-radius:50%;
+  background:#fff;border:2px solid var(--red);transform:translate(-50%,-50%);
+  transition:left .12s linear;box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.time{font-size:13.5px;color:var(--gray);letter-spacing:.06em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.vbtn{
+  font-size:13px;color:var(--gray);border:1px solid var(--line);
+  border-radius:999px;padding:6px 15px;background:var(--cream);
+  transition:all .25s ease;white-space:nowrap;
+}
+.vbtn:hover{color:var(--red);border-color:rgba(193,39,45,.4);background:var(--red-light)}
+.vhint{margin-top:15px;font-size:13.5px;color:var(--brown-soft);line-height:1.95}
+.vhint code{background:var(--cream-deep);padding:1px 7px;border-radius:5px;color:var(--red);font-family:Consolas,Monaco,monospace;font-size:12.5px}
+.vhint.warn{
+  color:var(--red);background:rgba(193,39,45,.07);
+  border:1px solid rgba(193,39,45,.28);border-radius:10px;padding:13px 16px;
+}
+.vhint.warn code{background:rgba(193,39,45,.14)}
+input[type=file]{display:none}
+
+/* ====== 总结 ===== */
+.gain{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px 24px;box-shadow:var(--shadow);position:relative;
+  transition:transform .35s ease,box-shadow .35s ease,border-color .35s;
+}
+.gain:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(193,39,45,.3)}
+.gain .idx{font-size:30px;color:rgba(193,39,45,.16);font-weight:700;line-height:1;margin-bottom:8px;font-family:Georgia,serif}
+.gain h4{font-size:17.5px;color:var(--red);font-weight:700;letter-spacing:.06em;margin-bottom:9px}
+.gain p{font-size:15px;color:var(--brown);text-align:justify;line-height:1.95}
+.final-quote{
+  margin-top:26px;text-align:center;padding:40px 26px;
+  background:linear-gradient(135deg,rgba(255,252,246,.9),rgba(244,233,214,.85));
+  border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.final-quote .q{font-size:clamp(18px,3.2vw,25px);color:var(--red);letter-spacing:.1em;line-height:2;font-weight:700}
+.final-quote .src{margin-top:14px;font-size:13.5px;color:var(--gray);letter-spacing:.24em}
+
+.foot{
+  margin-top:56px;padding-top:24px;border-top:1px dashed var(--line);
+  text-align:center;font-size:13px;color:var(--gray-light);letter-spacing:.18em;
+}
+
+/* 回到顶部 */
+#top{
+  position:fixed;right:24px;bottom:26px;z-index:90;
+  width:44px;height:44px;border-radius:50%;
+  background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;visibility:hidden;transform:translateY(14px);
+  transition:all .35s ease;
+}
+#top.show{opacity:1;visibility:visible;transform:translateY(0)}
+#top:hover{background:var(--red);border-color:var(--red)}
+#top svg{width:19px;height:19px;stroke:var(--gray);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .3s}
+#top:hover svg{stroke:#fff}
+
+/* Toast */
+#toast{
+  position:fixed;left:50%;bottom:40px;transform:translate(-50%,20px);
+  z-index:200;background:rgba(75,58,42,.94);color:#FBF3E6;
+  font-size:14px;letter-spacing:.08em;padding:10px 22px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:all .35s ease;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===================== 响应式 ===================== */
+@media (max-width:980px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-3{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:640px){
+  :root{--nav-h:56px}
+  body{font-size:15.5px;line-height:1.9}
+  .brand span{display:none}
+  .nav{padding:0 12px;gap:10px}
+  .nav-scroll{justify-content:flex-start}
+  .nav-btn{padding:7px 12px;font-size:14.5px;letter-spacing:.04em}
+  main{padding:0 15px 70px}
+  .card{padding:22px 18px}
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr}
+  .hero{padding-top:calc(var(--nav-h) + 26px);min-height:82vh}
+  .hero-planet{width:112px;height:112px}
+  .sec-head{gap:10px}
+  .sec-head .en{display:none}
+  .player-wrap{padding:14px}
+  .ctrl{gap:10px}
+  .bar{order:3;flex-basis:100%;min-width:100%}
+  .time{order:4}
+  #top{right:14px;bottom:16px}
+  .steps{padding-left:30px}
+  .step .dot{left:-30px;width:24px;height:24px;font-size:12px}
+  .final-quote{padding:30px 18px}
+  .shot figcaption{padding:14px 15px 16px}
+  .shot figcaption h4{font-size:16.5px}
+  #lightbox{padding:14px}
+}
+@media (max-width:380px){
+  .nav-btn{padding:6px 9px;font-size:13.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div id="progress" style="width: 0%;"></div>
+
+<!-- ============ 顶部固定导航 ============ -->
+<header id="header">
+  <nav class="nav">
+    <div class="brand">
+      <svg class="star" viewBox="0 0 24 24" fill="#C1272D"><path d="M12 2l2.4 6.9L21 12l-6.6 3.1L12 22l-2.4-6.9L3 12l6.6-3.1z"></path></svg>
+      <span>小王子</span>
+    </div>
+    <div class="nav-scroll" id="navScroll">
+      <button class="nav-btn active" data-target="sec-a">选题</button>
+      <button class="nav-btn" data-target="sec-b">策划</button>
+      <button class="nav-btn" data-target="sec-c">文案</button>
+      <button class="nav-btn" data-target="sec-d">素材</button>
+      <button class="nav-btn" data-target="sec-e">方法</button>
+      <button class="nav-btn" data-target="sec-f">工具</button>
+      <button class="nav-btn" data-target="sec-g">视频</button>
+      <button class="nav-btn" data-target="sec-h">总结</button>
+    </div>
+  </nav>
+</header>
+
+<!-- ============ 首屏 ============ -->
+<section class="hero" id="sec-hero">
+  <svg class="hero-planet" viewBox="0 0 120 120">
+    <defs>
+      <radialGradient id="pg" cx="38%" cy="32%">
+        <stop offset="0%" stop-color="#FBE7C6"></stop>
+        <stop offset="100%" stop-color="#E7BE86"></stop>
+      </radialGradient>
+    </defs>
+    <circle cx="60" cy="66" r="34" fill="url(#pg)" stroke="#C1272D" stroke-width="1.6"></circle>
+    <ellipse cx="60" cy="66" rx="50" ry="15" fill="none" stroke="#C1272D" stroke-width="1.8" opacity=".55" transform="rotate(-18 60 66)"></ellipse>
+    <circle cx="48" cy="58" r="5.5" fill="#C1272D" opacity=".85"></circle>
+    <circle cx="72" cy="60" r="5.5" fill="#C1272D" opacity=".85"></circle>
+    <path d="M45 78 Q60 88 75 77" stroke="#C1272D" stroke-width="3" fill="none" stroke-linecap="round"></path>
+    <circle cx="60" cy="26" r="3.4" fill="#C1272D"></circle>
+    <path d="M78 18 l1.6 4.4 4.4 1.6 -4.4 1.6 -1.6 4.4 -1.6 -4.4 -4.4 -1.6 4.4 -1.6z" fill="#C1272D" opacity=".8"></path>
+    <path d="M30 44 l1 2.8 2.8 1 -2.8 1 -1 2.8 -1 -2.8 -2.8 -1 2.8 -1z" fill="#C1272D" opacity=".6"></path>
+  </svg>
+  <h1>小 王 子</h1>
+  <p class="sub">LE PETIT PRINCE</p>
+  <p class="meta">新媒体交互设计作业 · 水彩插画风格 · 名著解说视频</p>
+  <div class="scroll-tip"><i></i><span>向下滚动浏览全部内容</span></div>
+</section>
+
+<main>
+
+  <!-- ========== a. 选题 ========== -->
+  <section class="section" id="sec-a">
+    <div class="sec-head reveal" data-delay="0">
+      <span class="sec-num">01 / 08</span>
+      <h2>选题</h2>
+      <span class="en">TOPIC</span>
+    </div>
+    <div class="card reveal" data-delay="80">
+      <h3>选题：《小王子》</h3>
+      <p>《小王子》是安托万·德·圣埃克苏佩里创作的经典童话。故事以飞行员沙漠遇险为开端，讲述小王子离开 B612 星球，游历多个星球，遇见形形色色的大人，最终在地球领悟爱的真谛。</p>
+      <p>作品探讨爱、孤独、责任、驯服，适合做视觉解说视频，画面意象丰富，水彩插画风格适配视频制作，主题有深度，容易引发观众共鸣。</p>
+      <div class="chips">
+        <span class="chip">经典童话</span>
+        <span class="chip">爱与责任</span>
+        <span class="chip">孤独与驯服</span>
+        <span class="chip">水彩插画</span>
+        <span class="chip">视觉解说</span>
+        <span class="chip">共鸣度高</span>
+      </div>
+      <div class="quote">"你在你的玫瑰花身上耗费的时间，使得你的玫瑰花变得如此重要。"</div>
+    </div>
+  </section>
+
+  <!-- ========== b. 策划 ========== -->
+  <section class="section" id="sec-b">
+    <div class="sec-head reveal" data-delay="160">
+      <span class="sec-num">02 / 08</span>
+      <h2>策划</h2>
+      <span class="en">PLANNING</span>
+    </div>
+    <div class="card reveal" data-delay="240">
+      <h3>视频定位</h3>
+      <p>4～5 分钟名著解说视频，水彩插画风格，一共 <strong>8 幅画面</strong>。</p>
+      <p><strong>制作形式：</strong>图文解说视频，搭配旁白配音，字幕同步。</p>
+    </div>
+    <div class="sec-head reveal" style="border:none;padding-bottom:6px;margin-bottom:18px" data-delay="320">
+      <h3 style="font-size:19px">画面清单</h3>
+    </div>
+    <p class="reveal muted" style="margin:-6px 0 20px" data-delay="400">图片自动缩放适配页面宽度，点击可放大查看原图。</p>
+
+    <figure class="shot reveal" data-delay="0">
+      <div class="pic" data-full="images/pic1.jpg" data-cap="画面一 · 飞行员与飞机迫降沙漠">
+        <img src="images/pic1.jpg" alt="画面一：黄昏的撒哈拉沙漠，飞行员与小王子并排坐在沙丘上，远处是迫降的飞机" loading="lazy">
+        <span class="badge">画面一</span>
+      </div>
+      <figcaption><h4>飞行员与飞机迫降沙漠</h4><p class="sub">故事开端 · 孤独的相遇</p></figcaption>
+    </figure>
+
+    <figure class="shot reveal" data-delay="80">
+      <div class="pic" data-full="images/pic2.jpg" data-cap="画面二 · 小王子的 B-612 星球与玫瑰">
+        <img src="images/pic2.jpg" alt="画面二：小王子坐在小星球上，身旁玻璃罩里罩着一朵玫瑰，背景是浩瀚银河" loading="lazy">
+        <span class="badge">画面二</span>
+      </div>
+      <figcaption><h4>小王子的 B-612 星球与玫瑰</h4><p class="sub">离开的起点</p></figcaption>
+    </figure>
+
+    <figure class="shot reveal" data-delay="160">
+      <div class="pic" data-full="images/pic3.jpg" data-cap="画面三 · 国王与虚荣者">
+        <img src="images/pic3.jpg" alt="画面三：左为戴皇冠的国王，右为拄杖脱帽行礼的虚荣者" loading="lazy">
+        <span class="badge">画面三</span>
+      </div>
+      <figcaption><h4>国王与虚荣者</h4><p class="sub">权力的荒诞</p></figcaption>
+    </figure>
+
+    <figure class="shot reveal" data-delay="240">
+      <div class="pic" data-full="images/pic4.jpg" data-cap="画面四 · 酒鬼与商人">
+        <img src="images/pic4.jpg" alt="画面四：左为抱头饮酒的酒鬼，右为夹着公文包数星星的商人" loading="lazy">
+        <span class="badge">画面四</span>
+      </div>
+      <figcaption><h4>酒鬼与商人</h4><p class="sub">循环的忙碌</p></figcaption>
+    </figure>
+
+    <figure class="shot reveal" data-delay="320">
+      <div class="pic" data-full="images/pic5.jpg" data-cap="画面五 · 点灯人">
+        <img src="images/pic5.jpg" alt="画面五：左为掌灯的点灯人，右为拿着放大镜伏案的地理学家" loading="lazy">
+        <span class="badge">画面五</span>
+      </div>
+      <figcaption><h4>点灯人</h4><p class="sub">意义高于数字</p></figcaption>
+    </figure>
+
+    <figure class="shot reveal" data-delay="400">
+      <div class="pic" data-full="images/pic6.jpg" data-cap="画面六 · 狐狸与麦田">
+        <img src="images/pic6.jpg" alt="画面六：小王子与狐狸并肩坐在金黄麦田中，四周是盛开的玫瑰" loading="lazy">
+        <span class="badge">画面六</span>
+      </div>
+      <figcaption><h4>狐狸与麦田</h4><p class="sub">驯服的定义</p></figcaption>
+    </figure>
+
+    <figure class="shot reveal" data-delay="0">
+      <div class="pic" data-full="images/pic7.jpg" data-cap="画面七 · 玫瑰园与领悟">
+        <img src="images/pic7.jpg" alt="画面七：小王子走在盛满红玫瑰的花园中，夕阳逆光" loading="lazy">
+        <span class="badge">画面七</span>
+      </div>
+      <figcaption><h4>玫瑰园与领悟</h4><p class="sub">独一无二的真相</p></figcaption>
+    </figure>
+
+    <figure class="shot reveal" data-delay="80">
+      <div class="pic" data-full="images/pic8.jpg" data-cap="画面八 · 星空">
+        <img src="images/pic8.jpg" alt="画面八：黄昏沙丘上，小王子手捧玫瑰与狐狸相对而坐" loading="lazy">
+        <span class="badge">画面八</span>
+      </div>
+      <figcaption><h4>星空</h4><p class="sub">结尾升华</p></figcaption>
+    </figure>
+  </section>
+
+  <!-- ========== c. 文案 ========== -->
+  <section class="section" id="sec-c">
+    <div class="sec-head reveal" data-delay="160">
+      <span class="sec-num">03 / 08</span>
+      <h2>文案</h2>
+      <span class="en">SCRIPT</span>
+    </div>
+    <div class="card reveal" style="margin-bottom:26px" data-delay="240">
+      <h3>解说词全文</h3>
+      <p class="muted">共八段，与八幅画面对应；配音时长约 4～5 分钟，字幕与画面同步。</p>
+    </div>
+    <div class="script">
+      <div class="script-item reveal" data-delay="320"><span class="lbl">画面一</span><button class="copy-btn" data-copy="">复制</button><p>故事从一个迫降在撒哈拉沙漠的飞行员开始。在他飞机破损的孤独时刻，一个奇怪的小男孩出现在他面前，这个男孩，就是小王子。</p></div>
+      <div class="script-item reveal" data-delay="400"><span class="lbl">画面二</span><button class="copy-btn" data-copy="">复制</button><p>小王子来自一个很小的星球，那里有三座火山，还有一朵骄傲的玫瑰。小王子每天给玫瑰浇水、挡风。可玫瑰的口是心非，总是让小王子感到困惑和伤心。于是他决定离开，去看看外面的世界。</p></div>
+      <div class="script-item reveal" data-delay="0"><span class="lbl">画面三</span><button class="copy-btn" data-copy="">复制</button><p>小王子拜访了两颗小行星。一颗星球上住着国王，他统治着空无一人的世界；另一颗星球上住着虚荣的人，一心等着别人崇拜他。小王子无法理解这些大人的想法。</p></div>
+      <div class="script-item reveal" data-delay="80"><span class="lbl">画面四</span><button class="copy-btn" data-copy="">复制</button><p>第三颗星球上住着一个酒鬼，他喝酒是为了忘记喝酒的羞愧。第四颗星球上住着一个商人，他忙着数星星，却对星星毫无用处。小王子越来越困惑：大人们到底在忙什么？</p></div>
+      <div class="script-item reveal" data-delay="160"><span class="lbl">画面五</span><button class="copy-btn" data-copy="">复制</button><p>第五颗星球上住着一个点灯人。他的星球转得太快了，每一分钟就要点一次灯。但是他却从不偷懒。小王子觉得：这个人虽然荒唐，但他的工作是有意义的——因为他点亮的，是一盏灯，而不是一个数字。第六颗星球上住着一位地理学家，他记录永恒的山川海洋，却从未离开过书桌。他告诉小王子："花朵是短暂的。"</p></div>
+      <div class="script-item reveal" data-delay="240"><span class="lbl">画面六</span><button class="copy-btn" data-copy="">复制</button><p>在地球上，小王子遇见了一只狐狸。狐狸告诉他："驯服，就是建立联系。你对我来说，只是一个普通的小男孩；我对你来说，也只是一只普通的狐狸。但如果你驯服了我，我们就会彼此需要。你将成为我世界上唯一的人，我也将成为你世界上唯一的狐狸。"</p></div>
+      <div class="script-item reveal" data-delay="320"><span class="lbl">画面七</span><button class="copy-btn" data-copy="">复制</button><p>后来，小王子走进了一座玫瑰园，看到了五千朵一模一样的玫瑰。他哭了，因为他以为他的玫瑰是宇宙中独一无二的。小王子终于明白：他的玫瑰之所以独一无二，不是因为她长得特别，而是因为他爱她。</p></div>
+      <div class="script-item reveal" data-delay="400"><span class="lbl">画面八</span><button class="copy-btn" data-copy="">复制</button><p>《小王子》告诉我们：真正重要的东西，用眼睛是看不见的。如果你遇见一个有着金色头发、不肯回答问题的男孩，请一定要写信告诉我：他回来了。</p></div>
+    </div>
+  </section>
+
+  <!-- ========== d. 素材 ========== -->
+  <section class="section" id="sec-d">
+    <div class="sec-head reveal" data-delay="0">
+      <span class="sec-num">04 / 08</span>
+      <h2>素材</h2>
+      <span class="en">MATERIALS</span>
+    </div>
+    <div class="card reveal" style="margin-bottom:24px" data-delay="80">
+      <h3>8 张 AI 水彩插画提示词</h3>
+      <p class="muted">统一风格关键词：<em>水彩插画 / 柔和色调 / 圣埃克苏佩里绘画风格</em>，对应策划板块的画面一至画面八，成品见上方画面清单。</p>
+    </div>
+
+    <div class="prompt reveal" data-delay="160">
+      <div class="prompt-head"><h4>画面一图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">一架老式飞机坠落在黄昏时分的撒哈拉沙漠中，一位穿着 1930 年代皮质飞行服的飞行员站在残骸旁，金色沙丘一直延伸到地平线，温暖的橙色晚霞天空，电影感远景，圣埃克苏佩里绘画风格，水彩插画，柔和暖色调</div>
+    </div>
+    <div class="prompt reveal" data-delay="240">
+      <div class="prompt-head"><h4>画面二图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">一颗漂浮在深蓝色太空中的微小星球，一个金色头发的小男孩站在上面，星球上有三座小火山和一朵带四根刺的骄傲玫瑰，背景星光闪烁，梦幻水彩风格，柔和粉彩色调</div>
+    </div>
+    <div class="prompt reveal" data-delay="320">
+      <div class="prompt-head"><h4>画面三图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">左右分割构图的两颗微小星球：左边是一位穿紫色王袍的国王独自坐在王座上，身边没有任何臣民；右边是一位戴高礼帽的男人对着镜子不停脱帽行礼，四周空无一人，星空背景，荒诞讽刺水彩插画，柔和粉彩色调</div>
+    </div>
+    <div class="prompt reveal" data-delay="400">
+      <div class="prompt-head"><h4>画面四图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">左右分割构图的两颗微小星球：左边是一个悲伤的酒鬼坐在空酒瓶堆中，双手抱头；右边是一个忙碌的商人对着账本数星星，星星变成了纸上的数字，灰蓝色调，水彩插画，讽刺而忧郁的氛围</div>
+    </div>
+    <div class="prompt reveal" data-delay="0">
+      <div class="prompt-head"><h4>画面五图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">一颗微小星球上，一个点灯人忠实地点亮一盏路灯，星球转得太快，白天黑夜每分钟交替一次，点灯人疲惫却尽责，温暖的灯光映衬着黑暗太空，水彩插画，苦乐参半的氛围</div>
+    </div>
+    <div class="prompt reveal" data-delay="80">
+      <div class="prompt-head"><h4>画面六图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">一只智慧的狐狸坐在日落时分的金色麦田中，一个金色头发的小男孩坐在狐狸身旁，温柔的对话氛围，温暖的金色光线，麦穗在微风中摇曳，水彩插画，温柔感人，柔和暖色调</div>
+    </div>
+    <div class="prompt reveal" data-delay="160">
+      <div class="prompt-head"><h4>画面七图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">一个金色头发的小男孩站在满是相同红玫瑰的花园中，表情从惊讶转为领悟，一只手轻轻触碰一朵玫瑰，柔和的晨光，水彩插画，情感深邃，温暖色调</div>
+    </div>
+    <div class="prompt reveal" data-delay="240">
+      <div class="prompt-head"><h4>画面八图片提示词</h4><button class="btn-copy" data-copy="">复制提示词</button></div>
+      <div class="prompt-body">撒哈拉沙漠上空浩瀚的星空，其中一颗星星比其他的更亮，一个孤独的飞行员剪影抬头仰望，风轻轻吹动沙子，水彩插画，深蓝与金色，宁静而怀旧的氛围</div>
+    </div>
+  </section>
+
+  <!-- ========== e. 方法 ========== -->
+  <section class="section" id="sec-e">
+    <div class="sec-head reveal" data-delay="320">
+      <span class="sec-num">05 / 08</span>
+      <h2>方法</h2>
+      <span class="en">METHOD</span>
+    </div>
+    <div class="card reveal" data-delay="400">
+      <h3>五步创作流程</h3>
+      <div class="steps" style="margin-top:20px">
+        <div class="step reveal" data-delay="0"><span class="dot">1</span><h4>内容构思</h4><p>阅读《小王子》原著，梳理故事主线，筛选 8 个核心情节片段，撰写解说词。</p></div>
+        <div class="step reveal" data-delay="80"><span class="dot">2</span><h4>图像生成</h4><p>使用 AI 绘图，输入提示词，统一水彩插画风格，生成 8 张配套画面。</p></div>
+        <div class="step reveal" data-delay="160"><span class="dot">3</span><h4>视频制作</h4><p>将图片按顺序排列，导入剪辑软件，添加 AI 配音、字幕，合成 4-5 分钟解说视频。</p></div>
+        <div class="step reveal" data-delay="240"><span class="dot">4</span><h4>网页制作</h4><p>用 WorkBuddy 生成带标签切换动画的动态网页，把选题、策划、文案、素材、方法、工具、视频、总结全部放进页面。</p></div>
+        <div class="step reveal" data-delay="320"><span class="dot">5</span><h4>部署上线</h4><p>本地预览网页，检查交互效果，上传至 GitHub 仓库，开启 GitHub Pages 发布网页。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== f. 工具 ========== -->
+  <section class="section" id="sec-f">
+    <div class="sec-head reveal" data-delay="400">
+      <span class="sec-num">06 / 08</span>
+      <h2>工具</h2>
+      <span class="en">TOOLS</span>
+    </div>
+    <div class="card reveal" style="margin-bottom:22px" data-delay="0">
+      <h3>使用的工具与平台</h3>
+      <p class="muted">覆盖 AI 辅助创作、图像生成、配音、剪辑、版本管理与网页托管的完整工具链。</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="tool reveal" data-delay="80">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"></path><path d="M18 16l1 2.4L21.4 19 19 20l-1 2.4L17 20l-2.4-1L17 18z"></path></svg></div>
+        <h4>WorkBuddy</h4><p>AI 辅助，生成动态网页代码、辅助撰写文案、生成图片提示词</p>
+      </div>
+      <div class="tool reveal" data-delay="160">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="8.5" cy="9.5" r="1.8"></circle><path d="M21 16l-5-5-4 4-2.5-2.5L4 20"></path></svg></div>
+        <h4>AI 绘图工具</h4><p>生成 8 张水彩插画</p>
+      </div>
+      <div class="tool reveal" data-delay="240">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"></path><path d="M16.5 8.5a5 5 0 010 7"></path><path d="M19 6a8.5 8.5 0 010 12"></path></svg></div>
+        <h4>AI 配音工具</h4><p>生成旁白音频</p>
+      </div>
+      <div class="tool reveal" data-delay="320">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="14" height="14" rx="2"></rect><path d="M16 10l6-3v10l-6-3z"></path></svg></div>
+        <h4>视频剪辑软件</h4><p>合成图片、音频、字幕，输出 mp4 视频</p>
+      </div>
+      <div class="tool reveal" data-delay="400">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="M8 11l4 4 4-4"></path><path d="M4 19h16"></path></svg></div>
+        <h4>GitHub Desktop</h4><p>上传网页文件</p>
+      </div>
+      <div class="tool reveal" data-delay="0">
+        <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a15 15 0 010 18 15 15 0 010-18z"></path></svg></div>
+        <h4>GitHub Pages</h4><p>网页托管发布</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== g. 视频 ========== -->
+  <section class="section" id="sec-g">
+    <div class="sec-head reveal" data-delay="80">
+      <span class="sec-num">07 / 08</span>
+      <h2>视频</h2>
+      <span class="en">VIDEO</span>
+    </div>
+    <div class="player-wrap reveal" data-delay="160">
+      <div class="stage">
+        <video id="video" playsinline="" preload="metadata" poster="images/pic1.jpg">
+          <!-- 视频文件：mp4/video.mp4 -->
+          <source src="mp4/video.mp4" type="video/mp4">
+          您的浏览器不支持 HTML5 视频播放，请升级浏览器或使用 Chrome / Edge 打开。
+        </video>
+        <div class="cover" id="cover">
+          <div class="ring"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></div>
+          <h4>《小王子》名著解说视频</h4>
+          <p id="coverText">图文解说 · 实测时长 3 分 08 秒<br>点击播放按钮开始观看</p>
+        </div>
+      </div>
+      <div class="ctrl">
+        <button class="pbtn" id="playBtn" aria-label="播放">
+          <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+        </button>
+        <div class="bar" id="bar"><span class="fill" id="fill" style="width: 0%;"></span><span class="knob" id="knob" style="left: 0%;"></span></div>
+        <span class="time" id="time">00:00 / 03:07</span>
+        <button class="vbtn" id="muteBtn">静音</button>
+        <button class="vbtn" id="pickBtn">选择本地视频</button>
+        <input type="file" id="fileInput" accept="video/*">
+      </div>
+      <p class="vhint" id="videoHint">
+        视频文件位于 <code>mp4/video.mp4</code>，8 张插画位于 <code>images/pic1.jpg ~ pic8.jpg</code>；上传时请保持 <code>index.html</code>、<code>images/</code>、<code>mp4/</code> 三者的相对位置不变。
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== h. 总结 ========== -->
+  <section class="section" id="sec-h">
+    <div class="sec-head reveal" data-delay="240">
+      <span class="sec-num">08 / 08</span>
+      <h2>总结</h2>
+      <span class="en">SUMMARY</span>
+    </div>
+    <div class="card reveal" style="margin-bottom:26px" data-delay="320">
+      <h3>本次作业收获</h3>
+    </div>
+    <div class="grid grid-2">
+      <div class="gain reveal" data-delay="400"><div class="idx">01</div><h4>掌握完整创作流程</h4><p>学会完整的新媒体作品创作流程，从选题策划、素材生成、视频制作，到动态网页展示、线上部署。</p></div>
+      <div class="gain reveal" data-delay="0"><div class="idx">02</div><h4>掌握提示词设计技巧</h4><p>掌握提示词设计技巧，统一整套插画的水彩风格，学会用 AI 辅助视觉创作。</p></div>
+      <div class="gain reveal" data-delay="80"><div class="idx">03</div><h4>理解作品内核</h4><p>理解作品内核：AI 只能生成素材，作品的感染力来自原著故事本身。</p></div>
+      <div class="gain reveal" data-delay="160"><div class="idx">04</div><h4>掌握网页制作与部署</h4><p>掌握动态网页制作与 GitHub Pages 部署，实现标签切换交互动效。</p></div>
+    </div>
+    <div class="final-quote reveal" data-delay="240">
+      <p class="q">"真正重要的东西，用眼睛是看不见的，<br>要用心去感受。"</p>
+      <p class="src">——《小王子》</p>
+    </div>
+    <p class="foot reveal" data-delay="320">《小王子》· 新媒体交互设计作业 · LE PETIT PRINCE</p>
+  </section>
+
+</main>
+
+<!-- 图片灯箱 -->
+<div id="lightbox">
+  <button class="close" id="lbClose" aria-label="关闭">×</button>
+  <div>
+    <img src="" alt="" id="lbImg">
+    <p class="cap" id="lbCap"></p>
+  </div>
+</div>
+
+<button id="top" aria-label="回到顶部">
+  <svg viewBox="0 0 24 24"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg>
+</button>
+<div id="toast">已复制到剪贴板</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ 1. 滚动：导航栏阴影 + 进度条 + 回顶 + 标签高亮 ============ */
+  var header = document.getElementById('header');
+  var bar    = document.getElementById('progress');
+  var topBtn = document.getElementById('top');
+  var navBar = document.getElementById('navScroll');
+  var btns   = Array.prototype.slice.call(document.querySelectorAll('.nav-btn'));
+  var secs   = Array.prototype.slice.call(document.querySelectorAll('.section'));
+  var ticking = false;
+
+  function currentSectionId(){
+    var line = header.offsetHeight + 90;   // 判定基准线
+    var id = secs[0].id;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i].getBoundingClientRect().top - line <= 0) id = secs[i].id;
+    }
+    // 滚动到底部时强制高亮最后一个板块
+    if(window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 6){
+      id = secs[secs.length-1].id;
+    }
+    return id;
+  }
+
+  function centerBtn(b){
+    if(navBar.scrollWidth <= navBar.clientWidth + 4) return;
+    var r = b.getBoundingClientRect(), nr = navBar.getBoundingClientRect();
+    if(r.left < nr.left + 8 || r.right > nr.right - 8){
+      navBar.scrollTo({
+        left: b.offsetLeft - navBar.clientWidth/2 + b.clientWidth/2,
+        behavior:'smooth'
+      });
+    }
+  }
+
+  function syncNav(id){
+    btns.forEach(function(b){
+      var on = (b.dataset.target === id);
+      b.classList.toggle('active', on);
+      if(on) centerBtn(b);
+    });
+  }
+
+  function onScroll(){
+    var st = window.pageYOffset || document.documentElement.scrollTop;
+    header.classList.toggle('scrolled', st > 40);
+    topBtn.classList.toggle('show', st > 520);
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (h > 0 ? (st/h*100) : 0) + '%';
+    syncNav(currentSectionId());
+  }
+  window.addEventListener('scroll', function(){
+    if(!ticking){
+      window.requestAnimationFrame(function(){ onScroll(); ticking = false; });
+      ticking = true;
+    }
+  }, {passive:true});
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  /* ============ 2. 点击标签 → 平滑滚动到对应板块 ============ */
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      var sec = document.getElementById(b.dataset.target);
+      if(!sec) return;
+      btns.forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      centerBtn(b);
+      var y = sec.getBoundingClientRect().top + window.pageYOffset - header.offsetHeight - 12;
+      window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' });
+      // 目标板块高亮闪烁 + 内容淡入
+      sec.classList.remove('flash'); void sec.offsetWidth; sec.classList.add('flash');
+      sec.querySelectorAll('.reveal').forEach(function(el, i){
+        var r = el.getBoundingClientRect();
+        if(r.top < window.innerHeight){
+          el.classList.remove('in');
+          setTimeout(function(){ el.classList.add('in'); }, 90 + i*70);
+        }
+      });
+    });
+  });
+
+  topBtn.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+
+  // 键盘左右方向键切换板块
+  document.addEventListener('keydown', function(e){
+    if(e.target && e.target.matches && e.target.matches('input,textarea')) return;
+    if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var id = currentSectionId();
+    var idx = secs.findIndex(function(s){ return s.id === id; });
+    if(idx < 0) return;
+    var next = e.key === 'ArrowRight' ? Math.min(idx+1, secs.length-1) : Math.max(idx-1, 0);
+    var btn = btns.filter(function(b){ return b.dataset.target === secs[next].id; })[0];
+    if(btn) btn.click();
+  });
+
+  /* ============ 3. 滚动进入淡入动画 ============ */
+  var revealEls = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          var el = en.target;
+          setTimeout(function(){ el.classList.add('in'); },
+            parseInt(el.dataset.delay || '0', 10));
+          io.unobserve(el);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -8% 0px' });
+    revealEls.forEach(function(el, i){
+      el.dataset.delay = String((i % 6) * 80); // 同屏元素依次延迟进场
+      io.observe(el);
+    });
+  }else{
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  /* ============ 4. 图片灯箱 ============ */
+  var lb     = document.getElementById('lightbox');
+  var lbImg  = document.getElementById('lbImg');
+  var lbCap  = document.getElementById('lbCap');
+  document.addEventListener('click', function(e){
+    var pic = e.target.closest ? e.target.closest('.pic') : null;
+    if(pic){
+      lbImg.src = pic.dataset.full;
+      lbImg.alt = pic.dataset.cap || '';
+      lbCap.textContent = pic.dataset.cap || '';
+      lb.classList.add('show');
+      return;
+    }
+    if((e.target.closest && e.target.closest('#lbClose')) || e.target === lb){
+      lb.classList.remove('show');
+    }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') lb.classList.remove('show');
+  });
+
+  /* ============ 5. 复制功能 ============ */
+  var toast = document.getElementById('toast');
+  var toastTimer;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2000);
+  }
+  function copyText(txt){
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(txt).then(
+        function(){ showToast('已复制到剪贴板'); },
+        function(){ fallback(); });
+    } else { fallback(); }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); showToast('已复制到剪贴板'); }
+      catch(err){ showToast('复制失败，请手动选择'); }
+      document.body.removeChild(ta);
+    }
+  }
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest ? e.target.closest('[data-copy]') : null;
+    if(!btn) return;
+    var box = btn.closest('.script-item, .prompt');
+    var src = box ? box.querySelector('.script-item p, .prompt-body') : null;
+    if(!src) return;
+    copyText(src.textContent.trim());
+    var t = btn.textContent;
+    btn.textContent = '已复制';
+    setTimeout(function(){ btn.textContent = t; }, 1800);
+  });
+
+  /* ============ 6. 视频播放器（mp4/video.mp4） ============ */
+  var video   = document.getElementById('video');
+  var playBtn = document.getElementById('playBtn');
+  var icon    = document.getElementById('playIcon');
+  var cover   = document.getElementById('cover');
+  var coverTx = document.getElementById('coverText');
+  var seek    = document.getElementById('bar');
+  var fill    = document.getElementById('fill');
+  var knob    = document.getElementById('knob');
+  var timeEl  = document.getElementById('time');
+  var muteBtn = document.getElementById('muteBtn');
+  var pickBtn = document.getElementById('pickBtn');
+  var fileIn  = document.getElementById('fileInput');
+  var hint    = document.getElementById('videoHint');
+
+  var ICON_PLAY  = '<path d="M8 5v14l11-7z"/>';
+  var ICON_PAUSE = '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>';
+  var MISSING = '<code>mp4/video.mp4</code> 未能加载：<strong>请确认 mp4 文件夹已与本网页 <code>index.html</code> 一起上传</strong>（目录结构须为 index.html + images/ + mp4/video.mp4）。';
+
+  function fmt(s){
+    if(!isFinite(s) || s < 0) s = 0;
+    var m = Math.floor(s/60), x = Math.floor(s%60);
+    return (m<10?'0':'')+m+':'+(x<10?'0':'')+x;
+  }
+  function paint(){
+    var d = video.duration || 0;
+    var p = d ? (video.currentTime/d) : 0;
+    fill.style.width = (p*100)+'%';
+    knob.style.left  = (p*100)+'%';
+    timeEl.textContent = fmt(video.currentTime)+' / '+fmt(d);
+  }
+  function setPlaying(on){
+    icon.innerHTML = on ? ICON_PAUSE : ICON_PLAY;
+    playBtn.setAttribute('aria-label', on ? '暂停' : '播放');
+  }
+  function missingVideo(){
+    hint.className = 'vhint warn';
+    hint.innerHTML = MISSING;
+    cover.classList.remove('hide');
+    coverTx.innerHTML = '暂未找到 <strong>mp4/video.mp4</strong><br>请确认 mp4 文件夹已上传后刷新页面';
+    timeEl.textContent = '00:00 / 00:00';
+  }
+  function toggle(){
+    if(video.paused){
+      var pr = video.play();
+      if(pr && pr.catch) pr.catch(function(){ showToast('请点击画面或播放按钮开始播放'); });
+    }else{ video.pause(); }
+  }
+  playBtn.addEventListener('click', toggle);
+  cover.addEventListener('click', toggle);
+  video.addEventListener('click', toggle);
+
+  video.addEventListener('play',  function(){ setPlaying(true);  cover.classList.add('hide'); });
+  video.addEventListener('pause', function(){ setPlaying(false); });
+  video.addEventListener('timeupdate', paint);
+  video.addEventListener('loadedmetadata', function(){ paint(); setPlaying(!video.paused); });
+  video.addEventListener('ended', function(){ setPlaying(false); cover.classList.remove('hide'); });
+  // <source> 的 error 事件不冒泡，需在捕获阶段监听
+  window.addEventListener('error', function(e){
+    var t = e.target;
+    if(t && (t.tagName === 'VIDEO' || t.tagName === 'SOURCE')) missingVideo();
+  }, true);
+
+  muteBtn.addEventListener('click', function(){
+    video.muted = !video.muted;
+    muteBtn.textContent = video.muted ? '取消静音' : '静音';
+    muteBtn.style.color = video.muted ? 'var(--red)' : '';
+  });
+
+  // 拖动进度
+  function seekTo(clientX){
+    if(!(video.duration > 0)) return;
+    var r = seek.getBoundingClientRect();
+    var ratio = Math.min(1, Math.max(0, (clientX - r.left)/r.width));
+    video.currentTime = ratio * video.duration;
+    paint();
+  }
+  var dragging = false;
+  seek.addEventListener('mousedown', function(e){ dragging = true; seekTo(e.clientX); });
+  document.addEventListener('mousemove', function(e){ if(dragging) seekTo(e.clientX); });
+  document.addEventListener('mouseup', function(){ dragging = false; });
+  seek.addEventListener('touchstart', function(e){ seekTo(e.touches[0].clientX); }, {passive:true});
+  seek.addEventListener('touchmove',  function(e){ seekTo(e.touches[0].clientX); }, {passive:true});
+
+  pickBtn.addEventListener('click', function(){ fileIn.click(); });
+  fileIn.addEventListener('change', function(){
+    var f = fileIn.files && fileIn.files[0];
+    if(!f) return;
+    if(video.src) URL.revokeObjectURL(video.src);
+    video.src = URL.createObjectURL(f);
+    video.load();
+    showToast('已载入本地视频：'+f.name);
+    var pr = video.play();
+    if(pr && pr.catch) pr.catch(function(){});
+  });
+
+  // 视频文件确实缺失时给出提示（networkState === 3 表示 NETWORK_NO_SOURCE）
+  video.load();
+  setTimeout(function(){
+    if(!(video.duration > 0) && video.networkState === 3) missingVideo();
+  }, 1200);
+})();
+</script>
+
+</body></html>
